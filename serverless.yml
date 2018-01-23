@@ -24,6 +24,14 @@ provider:
   region: ap-northeast-2
   profile: seolhun
 
+  stage: ${opt:stage, self:custom.defaultStage}
+  profile: ${self:custom.profiles.${self:provider.stage}}
+custom:
+  defaultStage: dev
+  profiles:
+    dev: devProfile
+    prod: prodProfile
+
 # you can overwrite defaults here
 #  stage: dev
 #  region: us-east-1
