@@ -1,0 +1,99 @@
+# frameworkVersion: ">=1.0.0 <2.0.0"
+frameworkVersion: "=1.25.0"
+custom:
+  defaultStage: dev
+  profiles:
+    dev: hunseol-dev
+    prod: hunseol
+
+# users-dev
+service:
+  name: user
+# Lambda
+provider:
+  name: aws
+  runtime: nodejs6.10
+  region: ap-northeast-2
+  stage: ${opt:stage, self:custom.defaultStage}
+  profile: ${self:custom.profiles.${self:provider.stage}}
+  # permissions for all of your functions can be set here
+  iamRoleStatements: 
+    - Effect: Allow
+      # Gives permission to DynamoDB tables in a specific region
+      Action: 
+        - dynamodb:DescribeTable
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: "arn:aws:dynamodb:ap-northeast-2:*:*"
+  # Lambda Memoery, Default is 1024    
+  memorySize: 512 
+  # versionFunctions: false # Optional function versioning
+  # Optional CF stack tags
+  # stackTags: 
+  #   key: value
+  # stackPolicy: # Optional CF stack policy. The example below allows updates to all resources except deleting/replacing EC2 instances (use with caution!)
+  #   - Effect: Allow
+  #     Principal: "*"
+  #     Action: "Update:*"
+  #     Resource: "*"
+  #   - Effect: Deny
+  #     Principal: "*"
+  #     Action:
+  #       - Update:Replace
+  #       - Update:Delete
+  #     Condition:
+  #       StringEquals:
+  #         ResourceType:
+  #           - AWS::EC2::Instance
+            
+functions:
+  hello:
+    # Handler는 deploy하면 재반영이 되지 않는 것 같다.
+    handler: handlers/hello.hello
+    events:
+      - http:
+          path: hello
+          method: get
+          cors:
+            origin: '*'
+  helloWorld:
+    handler: handlers/helloWorld.helloWorld
+    events:
+      - http:
+          path: helloWorld
+          method: get
+          cors:
+            origin: '*'
+          # authorizer: authorizerFunc
+  # authorizerFunc:
+  #   handler: handler.authorizerFunc
+
+  usersCreate:
+    handler: handlers/create.usersCreate
+    events:
+      - http:
+          path: users
+          method: post
+          cors: true
+
+# The "Resources" your "Functions" use. Raw AWS CloudFormation goes in here.
+resources:
+  Resources:
+    UsersTable:
+      Type: AWS::DynamoDB::Table
+      # DeletionPolicy: Retain
+      Properties:
+        TableName: HI-UsersTable
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 5
+          WriteCapacityUnits: 5
