@@ -10,9 +10,8 @@
 # Serverless Example
 - Author : [SeolHun](https://github.com/Seolhun/)
 
-## Create Template
-- AWS nodejs 템플릿 만들기 
-`sls -t template aws-nodejs`
+## 1. Create Template
+- `sls -t template aws-nodejs`
 
 - functions handler.`hello` 와 module.exports.`hello`를 맞춘다.	
 ```javascript
@@ -26,17 +25,36 @@ functions:
 
 - Options
 	- `-f` : function
-	- `-d` : post event
+	- `-d` : post event with parameter
+	- `-s` : stage
 
+## 2. Juest Local Test
 - Local Test 1
-`sls invoke local -f hello`
+  - `sls invoke local -f hello`
 - Local Test 2
-`sls invoke local -f hello -d "What is World"`
+  - `sls invoke local -f hello -d "What is World"`
 
+## 3.  Local Test with Serverless-Offline
 - Serverless Offline Plugin 추가
 ```yaml
 plugins:
   - serverless-offline
 ```
 - Local Test 3
-`serverless offline`
+  - `serverless offline`
+
+## 4. Deploy 
+- sls deploy
+- Function
+  - sls deploy -f hello
+- Function & Stage
+  - sls deploy -f hello -s production
+- AWS-Profile
+  - sls deploy -f hello -s production --aws-profile hunseol
+
+## 5. Remove 
+- Stage
+  - sls remove dev
+  - sls remove production
+- Function
+  - sls remove -f hello
