@@ -1,49 +1,34 @@
-service: aws-nodejs 
+service: first-scraper
 plugins:
   - serverless-offline
+  - serverless-plugin-typescript
 
 provider:
   name: aws
   runtime: nodejs6.10
-  stage: dev
   region: ap-northeast-2
-
-# you can add statements to the Lambda function's IAM Role here
-#  iamRoleStatements:
-#    - Effect: "Allow"
-#      Action:
-#        - "s3:ListBucket"
-#      Resource: { "Fn::Join" : ["", ["arn:aws:s3:::", { "Ref" : "ServerlessDeploymentBucket" } ] ]  }
-#    - Effect: "Allow"
-#      Action:
-#        - "s3:PutObject"
-#      Resource:
-#        Fn::Join:
-#          - ""
-#          - - "arn:aws:s3:::"
-#            - "Ref" : "ServerlessDeploymentBucket"
-#            - "/*"
-
-# you can define service wide environment variables here
-#  environment:
-#    variable1: value1
-
-# you can add packaging information here
-#package:
+  stage: dev
+  profile: hunseol
+  environment:
+    # DYNAMODB_TABLE: ${self:service}-${opt:stage, self:provider.stage}
+    DYNAMODB_TABLE: first-scraper
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE}"
+package:
   include:
     - utils/**
-#    - include-me-dir/**
-#  exclude:
-#    - exclude-me.js
-#    - exclude-me-dir/**
 
 functions:
   hello:
-    handler: handler.hello
-
-#    The following are a few example events you can configure
-#    NOTE: Please make sure to change your handler code to work with those events
-#    Check the event documentation for details
+    handler: hello/handler.hello
     events:
       - http:
           path: message
@@ -51,6 +36,15 @@ functions:
       - http:
           path: message/{name}
           method: get
+
+  cron:
+    handler: cron/handler.cron
+    events:
+      - schedule: rate(1 minute)
+
+  scrape:
+    handler: scrape/handler.scrape
+
 #      - s3: ${env:BUCKET}
 #      - schedule: rate(10 minutes)
 #      - sns: greeter-topic
