@@ -24,8 +24,12 @@ class Scraper {
   }
 
   saveToDb(data: string, url: string): void {
+    const TableName = process.env.DYNAMODB_TABLE;
+    if (!TableName) {
+      throw Error('Not found TableName');
+    }
     const params = {
-      TableName: process.env.DYNAMODB_TABLE,
+      TableName,
       Item: {
         id: uuid.v4(),
         url,
@@ -36,9 +40,6 @@ class Scraper {
     };
 
     dynamoDb.put(params, error => {
-      console.log('=====');
-      console.log(params);
-      console.log('=====');
       if (error) {
         console.error(`Error saving data to DynamoDB: ${JSON.stringify(error)}`)
         return Promise.reject(
